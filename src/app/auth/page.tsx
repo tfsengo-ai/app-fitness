@@ -10,8 +10,12 @@ import { Zap } from 'lucide-react';
 export default function AuthPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [redirectUrl, setRedirectUrl] = useState('');
 
   useEffect(() => {
+    // Definir URL de redirecionamento apenas no cliente
+    setRedirectUrl(window.location.origin);
+
     // Verificar se usuário já está autenticado
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
@@ -33,7 +37,7 @@ export default function AuthPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  if (loading) {
+  if (loading || !redirectUrl) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="animate-pulse">
@@ -124,7 +128,7 @@ export default function AuthPage() {
               },
             }}
             providers={['google']}
-            redirectTo={`${window.location.origin}/`}
+            redirectTo={redirectUrl}
             localization={{
               variables: {
                 sign_in: {
