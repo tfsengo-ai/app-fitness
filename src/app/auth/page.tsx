@@ -10,12 +10,8 @@ import { Zap } from 'lucide-react';
 export default function AuthPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [redirectUrl, setRedirectUrl] = useState('');
 
   useEffect(() => {
-    // Definir URL de redirecionamento apenas no cliente
-    setRedirectUrl(window.location.origin);
-
     // Verificar se usuário já está autenticado
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
@@ -28,8 +24,8 @@ export default function AuthPage() {
     // Escutar mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
         router.push('/');
       }
     });
@@ -37,7 +33,7 @@ export default function AuthPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  if (loading || !redirectUrl) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="animate-pulse">
@@ -121,14 +117,11 @@ export default function AuthPage() {
                   },
                 },
               },
-              className: {
-                container: 'auth-container',
-                button: 'auth-button',
-                input: 'auth-input',
-              },
             }}
             providers={['google']}
-            redirectTo={redirectUrl}
+            onlyThirdPartyProviders={false}
+            view="sign_in"
+            showLinks={true}
             localization={{
               variables: {
                 sign_in: {
@@ -145,7 +138,7 @@ export default function AuthPage() {
                   email_label: 'E-mail',
                   password_label: 'Senha',
                   email_input_placeholder: 'seu@email.com',
-                  password_input_placeholder: 'Crie uma senha',
+                  password_input_placeholder: 'Crie uma senha (mínimo 6 caracteres)',
                   button_label: 'Criar conta',
                   loading_button_label: 'Criando conta...',
                   social_provider_text: 'Continuar com {{provider}}',
